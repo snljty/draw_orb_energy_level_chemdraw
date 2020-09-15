@@ -57,6 +57,10 @@ import re
 import tkinter
 import tkinter.filedialog as tkfd
 
+# variables you can change before executing
+energyThreshold: float = 1E-3 # the threshold to decide whether degenerated or not
+EnergyGapToGraphGap = 50. #  the energy difference will be converted to the y distance
+
 root = tkinter.Tk()
 root.withdraw() # hide Tk window
 
@@ -110,10 +114,6 @@ class Orbital(object):
 const = Const()
 const.HartreeToeV: float = 27.211381581530137 # never change, it is a constant
 itemId: int = 0 # for chemdraw
-
-# variables you can change before executing
-energyThreshold: float = 1E-3 # the threshold to decide whether degenerated or not
-EnergyGapToGraphGap = 50. #  the energy difference will be converted to the y distance
 
 # you should only change the y coordinate of originPos, or change nothing
 # for the three lines below.
