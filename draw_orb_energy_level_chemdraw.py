@@ -57,10 +57,6 @@ import re
 import tkinter
 import tkinter.filedialog as tkfd
 
-# variables you can change before executing
-energyThreshold: float = 1E-3 # the threshold to decide whether degenerated or not
-EnergyGapToGraphGap = 50. #  the energy difference will be converted to the y distance
-
 root = tkinter.Tk()
 root.withdraw() # hide Tk window
 
@@ -114,6 +110,10 @@ class Orbital(object):
 const = Const()
 const.HartreeToeV: float = 27.211381581530137 # never change, it is a constant
 itemId: int = 0 # for chemdraw
+
+# variables you can change before executing
+const.energyThreshold: float = 1E-3 # the threshold to decide whether degenerated or not
+const.EnergyGapToGraphGap = 50. #  the energy difference will be converted to the y distance
 
 # you should only change the y coordinate of originPos, or change nothing
 # for the three lines below.
@@ -177,7 +177,8 @@ def ReadOrbitalFromOutFile(filename: str):
     # read orbital energy information
     orb = Orbital(wfnType = wfnType)
     # set attributes
-    orbAttrDict = {'R' : ('occ' , 'vir'), # occ for occupied, vir for virtural
+    orbAttrDict = {
+                   'R' : ('occ' , 'vir'), # occ for occupied, vir for virtural
                    'U' : ('aocc', 'bocc', 'avir', 'bvir'), # a for alpha, b for vir
                    'RO': ('docc', 'socc', 'nvir')# d for double-occupied, s for single-occupied,
                   }                              # n just for make a name difference.
@@ -499,9 +500,9 @@ MaxIn2 = lambda a, b: a if a >= b else b
 # for drawing orbitals into chemdraw cdxml file.
 
 def DrawR_Orbitals(orb) -> None:
-    global argv, energyThreshold
-    orbOcc = orb.occ.ClassifyData(energyThreshold)
-    orbVir = orb.vir.ClassifyData(energyThreshold)
+    global argv, const
+    orbOcc = orb.occ.ClassifyData(const.energyThreshold)
+    orbVir = orb.vir.ClassifyData(const.energyThreshold)
     if len(argv) == 1:
         print('This is a restricted wavefunction.')
         print('All energies are in unit eV.')
@@ -528,7 +529,7 @@ def DrawR_Orbitals(orb) -> None:
     for i in range(len(orbOcc.number)):
         eneThis = orbOcc.number[i]
         startx = originPos.x - (orbOcc.amount[i] - 1) * 25 # * 50 / 2
-        starty = originPos.y + (highPrtThre - eneThis) * EnergyGapToGraphGap
+        starty = originPos.y + (highPrtThre - eneThis) * const.EnergyGapToGraphGap
         for j in range(orbOcc.amount[i]):
             orbId += 1
             if (eneThis < lowPrtThre) or (eneThis > highPrtThre): continue
@@ -537,22 +538,22 @@ def DrawR_Orbitals(orb) -> None:
     for i in range(len(orbVir.number)):
         eneThis = orbVir.number[i]
         startx = originPos.x - (orbVir.amount[i] - 1) * 25 # * 50 / 2
-        starty = originPos.y + (highPrtThre - eneThis) * EnergyGapToGraphGap
+        starty = originPos.y + (highPrtThre - eneThis) * const.EnergyGapToGraphGap
         for j in range(orbVir.amount[i]):
             orbId += 1
             if (eneThis < lowPrtThre) or (eneThis > highPrtThre): continue
             drawer.PrintUnOccupied(startx + j * 50, starty, eneThis)
             drawer.PrintText(startx + j * 50 + 23, starty + 3, str(orbId), colorId = 9)
     if (lowPrtThre < 0) and (highPrtThre > 0):
-        drawer.PrintDashLine(10, originPos.y + highPrtThre * EnergyGapToGraphGap, 520, 'right')
+        drawer.PrintDashLine(10, originPos.y + highPrtThre * const.EnergyGapToGraphGap, 520, 'right')
     return
 
 def DrawU_Orbitals(orb) -> None:
     global argv
-    orbAOcc = orb.aocc.ClassifyData(energyThreshold)
-    orbAVir = orb.avir.ClassifyData(energyThreshold)
-    orbBOcc = orb.bocc.ClassifyData(energyThreshold)
-    orbBVir = orb.bvir.ClassifyData(energyThreshold)
+    orbAOcc = orb.aocc.ClassifyData(const.energyThreshold)
+    orbAVir = orb.avir.ClassifyData(const.energyThreshold)
+    orbBOcc = orb.bocc.ClassifyData(const.energyThreshold)
+    orbBVir = orb.bvir.ClassifyData(const.energyThreshold)
     if len(argv) == 1:
         print('This is an unrestricted wavefunction.')
         print('All energies are in unit eV.')
@@ -596,7 +597,7 @@ def DrawU_Orbitals(orb) -> None:
     for i in range(len(orbAOcc.number)):
         eneThis = orbAOcc.number[i]
         startx = originPosA.x - (orbAOcc.amount[i] - 1) * 25 # * 50 / 2
-        starty = originPosA.y + (highPrtThre - eneThis) * EnergyGapToGraphGap
+        starty = originPosA.y + (highPrtThre - eneThis) * const.EnergyGapToGraphGap
         for j in range(orbAOcc.amount[i]):
             orbId += 1
             if (eneThis < lowPrtThre) or (eneThis > highPrtThre): continue
@@ -605,7 +606,7 @@ def DrawU_Orbitals(orb) -> None:
     for i in range(len(orbAVir.number)):
         eneThis = orbAVir.number[i]
         startx = originPosA.x - (orbAVir.amount[i] - 1) * 25 # * 50 / 2
-        starty = originPosA.y + (highPrtThre - eneThis) * EnergyGapToGraphGap
+        starty = originPosA.y + (highPrtThre - eneThis) * const.EnergyGapToGraphGap
         for j in range(orbAVir.amount[i]):
             orbId += 1
             if (eneThis < lowPrtThre) or (eneThis > highPrtThre): continue
@@ -615,7 +616,7 @@ def DrawU_Orbitals(orb) -> None:
     for i in range(len(orbBOcc.number)):
         eneThis = orbBOcc.number[i]
         startx = originPosB.x - (orbBOcc.amount[i] - 1) * 25 # * 50 / 2
-        starty = originPosB.y + (highPrtThre - eneThis) * EnergyGapToGraphGap
+        starty = originPosB.y + (highPrtThre - eneThis) * const.EnergyGapToGraphGap
         for j in range(orbBOcc.amount[i]):
             orbId += 1
             if (eneThis < lowPrtThre) or (eneThis > highPrtThre): continue
@@ -624,24 +625,24 @@ def DrawU_Orbitals(orb) -> None:
     for i in range(len(orbBVir.number)):
         eneThis = orbBVir.number[i]
         startx = originPosB.x - (orbBVir.amount[i] - 1) * 25 # * 50 / 2
-        starty = originPosB.y + (highPrtThre - eneThis) * EnergyGapToGraphGap
+        starty = originPosB.y + (highPrtThre - eneThis) * const.EnergyGapToGraphGap
         for j in range(orbBVir.amount[i]):
             orbId += 1
             if (eneThis < lowPrtThre) or (eneThis > highPrtThre): continue
             drawer.PrintUnOccupied(startx + j * 50, starty, eneThis)
             drawer.PrintText(startx + j * 50 + 23, starty + 3, str(orbId), colorId = 9)
     drawer.PrintDashLine(270, 10,
-                         2 * originPos.y + (highPrtThre - lowPrtThre) * EnergyGapToGraphGap - 10,
+                         2 * originPos.y + (highPrtThre - lowPrtThre) * const.EnergyGapToGraphGap - 10,
                          'Down', colorId = 0)
     if (lowPrtThre < 0) and (highPrtThre > 0):
-        drawer.PrintDashLine(10, originPos.y + highPrtThre * EnergyGapToGraphGap, 520, 'right')
+        drawer.PrintDashLine(10, originPos.y + highPrtThre * const.EnergyGapToGraphGap, 520, 'right')
     return
 
 def DrawRO_Orbitals(orb) -> None:
     global argv
-    orbDOcc = orb.docc.ClassifyData(energyThreshold)
-    orbSOcc = orb.socc.ClassifyData(energyThreshold)
-    orbNVir = orb.nvir.ClassifyData(energyThreshold)
+    orbDOcc = orb.docc.ClassifyData(const.energyThreshold)
+    orbSOcc = orb.socc.ClassifyData(const.energyThreshold)
+    orbNVir = orb.nvir.ClassifyData(const.energyThreshold)
     if len(argv) == 1:
         print('This is a restricted open wavefunction.')
         print('All energies are in unit eV.')
@@ -676,7 +677,7 @@ def DrawRO_Orbitals(orb) -> None:
     for i in range(len(orbDOcc.number)):
         eneThis = orbDOcc.number[i]
         startx = originPos.x - (orbDOcc.amount[i] - 1) * 25 # * 50 / 2
-        starty = originPos.y + (highPrtThre - eneThis) * EnergyGapToGraphGap
+        starty = originPos.y + (highPrtThre - eneThis) * const.EnergyGapToGraphGap
         for j in range(orbDOcc.amount[i]):
             orbId += 1
             if (eneThis < lowPrtThre) or (eneThis > highPrtThre): continue
@@ -685,7 +686,7 @@ def DrawRO_Orbitals(orb) -> None:
     for i in range(len(orbSOcc.number)):
         eneThis = orbSOcc.number[i]
         startx = originPos.x - (orbSOcc.amount[i] - 1) * 25 # * 50 / 2
-        starty = originPos.y + (highPrtThre - eneThis) * EnergyGapToGraphGap
+        starty = originPos.y + (highPrtThre - eneThis) * const.EnergyGapToGraphGap
         for j in range(orbSOcc.amount[i]):
             orbId += 1
             if (eneThis < lowPrtThre) or (eneThis > highPrtThre): continue
@@ -694,14 +695,14 @@ def DrawRO_Orbitals(orb) -> None:
     for i in range(len(orbNVir.number)):
         eneThis = orbNVir.number[i]
         startx = originPos.x - (orbNVir.amount[i] - 1) * 25 # * 50 / 2
-        starty = originPos.y + (highPrtThre - eneThis) * EnergyGapToGraphGap
+        starty = originPos.y + (highPrtThre - eneThis) * const.EnergyGapToGraphGap
         for j in range(orbNVir.amount[i]):
             orbId += 1
             if (eneThis < lowPrtThre) or (eneThis > highPrtThre): continue
             drawer.PrintUnOccupied(startx + j * 50, starty, eneThis)
             drawer.PrintText(startx + j * 50 + 23, starty + 3, str(orbId), colorId = 9)
     if (lowPrtThre < 0) and (highPrtThre > 0):
-        drawer.PrintDashLine(10, originPos.y + highPrtThre * EnergyGapToGraphGap, 520, 'right')
+        drawer.PrintDashLine(10, originPos.y + highPrtThre * const.EnergyGapToGraphGap, 520, 'right')
     return
 
 drawTypeDict = {'R': DrawR_Orbitals, 'U': DrawU_Orbitals, 'RO': DrawRO_Orbitals}
