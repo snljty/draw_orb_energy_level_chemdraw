@@ -45,10 +45,11 @@ version 1.4: can choose a range of printing.
 version 2.0: rewrote most codes, more likely to be OOP instead of POP.
 version 2.1: used some modules to make the code easier to be read.
 version 2.2: added a GUI for opening the file.
+version 2.3: the program will keep asking for input file until an exist file is given.
 
 """
 
-__version__ = 2.2
+__version__ = 2.3
 
 import os
 from sys import argv
@@ -112,8 +113,8 @@ const.HartreeToeV: float = 27.211381581530137 # never change, it is a constant
 itemId: int = 0 # for chemdraw
 
 # variables you can change before executing
-const.energyThreshold: float = 1E-3 # the threshold to decide whether degenerated or not
-const.EnergyGapToGraphGap = 50. #  the energy difference will be converted to the y distance
+const.energyThreshold: float = 1E-3 # the threshold to decide whether degenerated or not, 1E-3 is suggested
+const.EnergyGapToGraphGap = 50. #  the energy difference will be converted to the y distance, 50 is suggested
 
 # you should only change the y coordinate of originPos, or change nothing
 # for the three lines below.
@@ -724,19 +725,26 @@ Please set your ChemDraw template to 'ACS 1996 Documents'.
 ''')
     print('Directly press <Enter> will open a GUI to choose the file.')
     print('or input name of a Gaussian/ORCA output file below:')
-    iname = input()
-    if (not iname) or iname.isspace(): # blank line, open a GUI
-        iname = tkfd.askopenfilename(title = 'Choose a Gaussian/ORCA output file',
-                                     filetypes = [('Gaussian output file', '.out'),
-                                                  (    'ORCA output file', '.out')])
-    else: # file name input, check the extension name.
-        if os.path.splitext(iname)[1] != '.out':
-            raise NotImplementedError('Only .out file can be read!')
+    while True:
+        iname = input()
+        if (not iname) or iname.isspace(): # blank line, open a GUI
+            iname = tkfd.askopenfilename(initialdir = '.',
+                                         title = 'Choose a Gaussian/ORCA output file',
+                                         filetypes = [('Gaussian output file', '.out'),
+                                                      (    'ORCA output file', '.out')])
+        # test if the input file can be opened
+        try:
+            with open(iname) as f:
+                break
+        except FileNotFoundError as e:
+            pass
+        print('Error! Cannot open "%s", please input again.' % iname)
+    # file name input, check the extension name.
+    if os.path.splitext(iname)[1] != '.out':
+        raise NotImplementedError('Only .out file can be read!')
 oname = os.path.splitext(iname)[0] + '_orbital_energy_level' + '.cdxml'
 
-# test if the input file can be opened
-with open(iname) as f:
-    pass
+
 # obtain orbitals energy information
 outType, orb = ReadOrbitalFromOutFile(iname)
 
